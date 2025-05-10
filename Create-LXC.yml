@@ -29,8 +29,7 @@
         disk: "{{ disk }}"
         memory: "{{ memory }}"      
         cores: 1
-        "netif": '{"net0":"name=eth0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp,bridge=vmbr0"}'
-        #netif: "{{ netif | string }}"
+        netif: "{{ netif | string }}"
         unprivileged: true
         state: 'present'
         #cpus: "{{ container_cpus }}"

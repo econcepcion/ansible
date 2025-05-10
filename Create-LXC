@@ -1,0 +1,23 @@
+---
+- name: Create new LXC container in Proxmox
+  hosts: all
+  tasks:
+    - name: 'Create LXC Container'
+      proxmox:
+          vmid: '300' # Specifying Container ID
+          api_user: root # Proxmox user
+          api_password: P@ssw0rd # Password in plaintext !!!
+          api_host: x.x.x.x # Proxmox hostname
+          password: 'P@ssw0rd' # Password in plaintext !!!
+          hostname: 'ansible-lxc' # Container hostname
+          node: 'proxmox01' # Name of Proxmox host
+          cores: '1'
+          cpus: '1'
+          cpuunits: '1000'
+          ostemplate: 'local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz' # Or use local:vztmpl/...
+          storage: 'local' # Or use 'local'
+          disk: '8'
+          memory: '512'
+          nameserver: '8.8.8.8'
+          netif: '{"net0":"name=eth0,ip=192.168.100.38/24,gw=192.168.100.1,ip6=dhcp,bridge=vmbr0"}'
+          state: 'present'

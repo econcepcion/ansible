@@ -1,5 +1,5 @@
 vmid: 300
-api_user: root@pam
+api_user: "root@pam!ansible"
 api_password: "25942485-8451-4862-a284-9d0735662f13"
 api_host: 192.168.1.150
 

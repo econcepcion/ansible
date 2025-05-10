@@ -26,10 +26,12 @@
         node: "{{ proxmox_node }}"
         cores: "{{ container_cores }}"
         cpus: "{{ container_cpus }}"
+        cpuunits: "{{ container_cpuunits }}"
         ostemplate: "{{ ostemplate }}"
         storage: "{{ storage }}"
         disk: "{{ disk }}"
         memory: "{{ memory }}"
+        nameserver: "{{ nameserver }}"     
         netif: "{{ netif }}"
         unprivileged: true
         state: 'present'

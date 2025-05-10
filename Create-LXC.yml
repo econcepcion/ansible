@@ -19,7 +19,8 @@
       proxmox:
         vmid: "{{ vmid }}"
         api_user: "{{ api_user }}"
-        api_password: "{{ api_password }}"
+        api_token_id: "{{ api_token_id }}"
+        api_token_secret: "{{ api_token_secret }}"
         api_host: "{{ api_host }}"
         password: "{{ container_password }}"
         hostname: "{{ container_hostname }}"

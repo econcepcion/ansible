@@ -1,6 +1,6 @@
 vmid: 300
-api_user: "root@pam!ansible"
-api_password: "25942485-8451-4862-a284-9d0735662f13"
+api_user: "root@pam!lxc"
+api_password: "65383e4c-2529-4ec8-97a7-27066541d334"
 api_host: 192.168.1.150
 
 container_password: "{{ lookup('env', 'LXC_ROOT_PASSWORD') }}"

@@ -14,8 +14,17 @@
 
     - name: Install LAMP Packages
       apt: name={{ item }} update_cache=yes state=latest
-      loop: [ 'apache2', 'default-mysql-server', 'python3-pymysql', 'php', 'php-mysql', 'libapache2-mod-php' ]
+      loop: [ 'apache2', 'default-mysql-server', 'php', 'php-mysql', 'libapache2-mod-php' ]
       tags: [ system ]
+
+    - name: Install PyMySQL for Ansible MySQL modules
+      apt:
+        name: python3-pymysql
+        state: present
+        update_cache: yes
+      tags: [ system ]
+
+
 
     - name: Install PHP Extensions
       apt: name={{ item }} update_cache=yes state=latest

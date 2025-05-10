@@ -32,6 +32,6 @@
         disk: "{{ disk }}"
         memory: "{{ memory }}"
         nameserver: "{{ nameserver }}"
-        netif: "{{ netif | to_json }}"
+        netif: "{{ netif }}"
         unprivileged: true
         state: 'present'

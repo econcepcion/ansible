@@ -16,9 +16,9 @@
         var: env_out.stdout_lines
 
     - name: Create LXC Container
-      proxmox:
+      community.general.proxmox:
         vmid: "{{ vmid }}"
-        api_user: "root@pam"
+        api_user: "{{ api_user }}"
         api_password: "{{ api_password }}"
         api_host: "{{ api_host }}"
         password: "{{ container_password }}"
@@ -27,12 +27,8 @@
         ostemplate: "{{ ostemplate }}"
         storage: "{{ storage }}"
         disk: "{{ disk }}"
-        memory: "{{ memory }}"      
+        memory: "{{ memory }}"
         cores: 1
         netif: "{{ netif | string }}"
         unprivileged: true
-        state: 'present'
-        #cpus: "{{ container_cpus }}"
-        #cpuunits: "{{ container_cpuunits }}"
-        #nameserver: "{{ nameserver }}"     
-
+        state: present

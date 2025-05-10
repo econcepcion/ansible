@@ -46,7 +46,8 @@
         cpus: "{{ cpus }}"
         cpuunits: "{{ cpuunits }}"
         nameserver: "{{ nameserver }}"
-        netif: "{{ netif }}"
+        netif: "{{ netif }}"  # make sure this is a string, not a dict
         unprivileged: true
         state: present
         validate_certs: false
+

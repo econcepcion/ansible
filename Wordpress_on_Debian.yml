@@ -1,7 +1,21 @@
 #########################################################
 # DO Community Playbooks: Wordpress on Debian 18.04 LAMP
 #########################################################
+# --- First Play: Ensure pymysql is installed before Ansible tries to use mysql_* modules
 ---
+- hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    - name: Ensure PyMySQL is installed for MySQL modules
+      apt:
+        name: python3-pymysql
+        state: present
+        update_cache: yes
+
+# --- Second Play: The rest of your original playbook        
 - hosts: all
   become: true
   vars:

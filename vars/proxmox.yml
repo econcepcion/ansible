@@ -16,7 +16,7 @@ ostemplate: "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
 storage: local
 disk: "8"
 memory: 512
-nameserver: 192.168.1.254
+#nameserver: 192.168.1.254
 
 netif:
   netif: '{"net0":"name=eth0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp,bridge=vmbr0"}'

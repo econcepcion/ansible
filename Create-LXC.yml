@@ -36,4 +36,5 @@
         memory: "{{ memory }}"
         nameserver: "{{ nameserver }}"
         netif: "{{ netif }}"
+        unprivileged: true
         state: 'present'

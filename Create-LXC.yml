@@ -28,7 +28,7 @@
         storage: "{{ storage }}"
         disk: "{{ disk }}"
         memory: "{{ memory }}"      
-        cores: "{{ container_cores }}"
+        cores: 1
         netif: "{{ netif }}"
         unprivileged: true
         state: 'present'

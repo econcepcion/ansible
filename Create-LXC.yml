@@ -9,25 +9,21 @@
     api_user: "root@pam"
     api_password: "c0ff33"
     api_host: "192.168.1.150"
-
     container_password: "c0ff33"
     container_hostname: "ansible-lxc"
     proxmox_node: "dragon"
-
     ostemplate: "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
     storage: "local"
     disk: "8"
     memory: 512
-    cores: 1
+    nameserver: "192.168.1.254"
     cpus: 1
     cpuunits: 1024
-    nameserver: "192.168.1.254"
-
     netif: 'net0=name=eth0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp,bridge=vmbr0'
 
   tasks:
     - name: Debug environment to verify variables
-      command: "env"
+      command: env
       register: env_out
 
     - debug:
@@ -46,10 +42,11 @@
         storage: "{{ storage }}"
         disk: "{{ disk }}"
         memory: "{{ memory }}"
-        cores: "{{ cores }}"
+        cores: 1
         cpus: "{{ cpus }}"
         cpuunits: "{{ cpuunits }}"
         nameserver: "{{ nameserver }}"
         netif: "{{ netif }}"
         unprivileged: true
         state: present
+        validate_certs: false

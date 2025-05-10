@@ -2,7 +2,10 @@
 - hosts: all
   become: true
   tasks:
-    - name: APT Package Updater
+    - name: Update APT package cache
       apt:
-        upgrade: yes
         update_cache: yes
+
+    - name: Perform safe APT upgrade
+      apt:
+        upgrade: safe

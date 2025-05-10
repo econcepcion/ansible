@@ -21,9 +21,10 @@
     netif: "net0=name=eth0,bridge=vmbr0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp"
 
   tasks:
-    - name: Show netif variable type
-      debug:
-        msg: "netif type = {{ netif.__class__.__name__ }}, value = {{ netif }}"
+    - name: Force netif as a string
+        set_fact:
+          netif: "net0=name=eth0,bridge=vmbr0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp"
+      
 
 
     - name: Create LXC Container

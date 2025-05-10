@@ -24,14 +24,15 @@
         password: "{{ container_password }}"
         hostname: "{{ container_hostname }}"
         node: "{{ proxmox_node }}"
-        cores: "{{ container_cores }}"
-        cpus: "{{ container_cpus }}"
-        cpuunits: "{{ container_cpuunits }}"
         ostemplate: "{{ ostemplate }}"
         storage: "{{ storage }}"
         disk: "{{ disk }}"
-        memory: "{{ memory }}"
-        nameserver: "{{ nameserver }}"     
+        memory: "{{ memory }}"      
+        cores: "{{ container_cores }}"
         netif: "{{ netif }}"
         unprivileged: true
         state: 'present'
+        #cpus: "{{ container_cpus }}"
+        #cpuunits: "{{ container_cpuunits }}"
+        #nameserver: "{{ nameserver }}"     
+

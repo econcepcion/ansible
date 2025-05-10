@@ -5,7 +5,8 @@ api_token_secret: "65383e4c-2529-4ec8-97a7-27066541d334"
 
 api_host: 192.168.1.150
 
-container_password: "{{ lookup('env', 'LXC_ROOT_PASSWORD') }}"
+container_password: "c0ff33"
+#container_password: "{{ lookup('env', 'LXC_ROOT_PASSWORD') }}"
 container_hostname: ansible-lxc
 proxmox_node: dragon
 

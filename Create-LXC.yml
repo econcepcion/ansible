@@ -2,6 +2,8 @@
 - name: Create new LXC container in Proxmox
   hosts: localhost
   gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3  
   vars_files:
     - vars/proxmox.yml
 

@@ -1,3 +1,4 @@
+---
 - name: Create new LXC container in Proxmox
   hosts: localhost
   gather_facts: false
@@ -16,9 +17,7 @@
     cpus: 1
     cpuunits: 1024
     nameserver: "192.168.1.254"
-    #netif_string: "net0=name=eth0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp,bridge=vmbr0"
     netif: "net0=name=eth0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp,bridge=vmbr0"
-
     vmid: 158
 
   tasks:
@@ -42,4 +41,3 @@
         unprivileged: true
         state: present
         validate_certs: false
-

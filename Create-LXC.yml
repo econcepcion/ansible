@@ -41,7 +41,8 @@
         cpus: "{{ cpus }}"
         cpuunits: "{{ cpuunits }}"
         nameserver: "{{ nameserver }}"
-        netif: "{{ netif }}"
+        netif: "{{ netif | string }}"
         unprivileged: true
         state: present
         validate_certs: false
+

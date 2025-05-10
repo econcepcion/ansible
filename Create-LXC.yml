@@ -1,4 +1,12 @@
 ---
+- name: Debug effective HOME and remote_tmp
+  command: "env"
+  register: env_out
+
+- debug:
+    var: env_out.stdout_lines
+
+
 - name: Create new LXC container in Proxmox
   hosts: localhost
   gather_facts: false

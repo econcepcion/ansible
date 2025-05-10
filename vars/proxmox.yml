@@ -3,7 +3,8 @@ api_user: root@pam
 api_password: "{{ lookup('env', 'PROXMOX_API_PASSWORD') }}"
 api_host: 192.168.1.150
 
-container_password: "{{ lookup('env', 'LXC_ROOT_PASSWORD') }}"
+container_password: "c0ff33"
+#container_password: "{{ lookup('env', 'LXC_ROOT_PASSWORD') }}"
 container_hostname: ansible-lxc
 proxmox_node: dragon
 

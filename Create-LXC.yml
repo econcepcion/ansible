@@ -35,6 +35,6 @@
         disk: "{{ disk }}"
         memory: "{{ memory }}"
         nameserver: "{{ nameserver }}"
-        netif: "{{ netif }}"
+        netif: "{{ container_netif }}"
         unprivileged: true
         state: 'present'

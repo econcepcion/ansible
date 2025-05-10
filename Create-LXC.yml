@@ -18,9 +18,11 @@
     - name: Create LXC Container
       proxmox:
         vmid: "{{ vmid }}"
-        api_user: "{{ api_user }}"
-        api_token_id: "{{ api_token_id }}"
-        api_token_secret: "{{ api_token_secret }}"
+        api_user: "root@pam"
+        api_password: "c0ff33"   
+        #api_user: "{{ api_user }}"
+        #api_token_id: "{{ api_token_id }}"
+        #api_token_secret: "{{ api_token_secret }}"
         api_host: "{{ api_host }}"
         password: "{{ container_password }}"
         hostname: "{{ container_hostname }}"

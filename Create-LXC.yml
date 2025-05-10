@@ -18,6 +18,10 @@
     storage: "local"
     disk: "8"
     memory: 512
+    cores: 1
+    cpus: 1
+    cpuunits: 1024
+    nameserver: "192.168.1.254"
 
     netif: '{"net0":"name=eth0,ip=192.168.1.158/24,gw=192.168.1.254,ip6=dhcp,bridge=vmbr0"}'
 
@@ -42,7 +46,10 @@
         storage: "{{ storage }}"
         disk: "{{ disk }}"
         memory: "{{ memory }}"
-        cores: 1
+        cores: "{{ cores }}"
+        cpus: "{{ cpus }}"
+        cpuunits: "{{ cpuunits }}"
+        nameserver: "{{ nameserver }}"
         netif: "{{ netif | string }}"
         unprivileged: true
         state: present

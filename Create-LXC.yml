@@ -29,7 +29,7 @@
         disk: "{{ disk }}"
         memory: "{{ memory }}"      
         cores: 1
-        netif: "{{ netif }}"
+        netif: "{{ netif | from_yaml }}"
         unprivileged: true
         state: 'present'
         #cpus: "{{ container_cpus }}"

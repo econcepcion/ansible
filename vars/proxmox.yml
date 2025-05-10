@@ -1,6 +1,8 @@
 vmid: 300
-api_user: "root@pam!lxc"
-api_password: "65383e4c-2529-4ec8-97a7-27066541d334"
+api_user: "root@pam"
+api_token_id: "ansible"
+api_token_secret: "65383e4c-2529-4ec8-97a7-27066541d334"
+
 api_host: 192.168.1.150
 
 container_password: "{{ lookup('env', 'LXC_ROOT_PASSWORD') }}"

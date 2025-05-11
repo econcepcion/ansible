@@ -88,3 +88,14 @@
         unprivileged:   true
         state:          present
         validate_certs: false
+      no_log: true
+
+    - name: Start the LXC Container
+      community.general.proxmox:
+        api_host:       "{{ api_host }}"
+        api_user:       "{{ api_user }}"
+        api_password:   "{{ api_password }}"
+        node:           "{{ proxmox_node }}"
+        vmid:           "{{ vmid }}"
+        state:          started
+      no_log: true

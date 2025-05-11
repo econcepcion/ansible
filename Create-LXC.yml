@@ -45,7 +45,6 @@
                           | list }}"
 
     - name: Ping each candidate to find a free IP
-      become: true                                # run as root so ping can open raw sockets
       ansible.builtin.command:
         cmd: "timeout 1 ping -c1 -W1 {{ item }}"
       register: ping_results
@@ -60,7 +59,7 @@
         free_ip: "{{ item.item }}"
       loop: "{{ ping_results.results }}"
       when:
-        - item.rc == 1      # host unreachable is the only “free” case
+        - item.rc == 1      # unreachable == free
         - free_ip is not defined
       run_once: true
 

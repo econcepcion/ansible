@@ -23,7 +23,6 @@
     cpus:       1
     cpuunits:   1024
     nameserver: "192.168.1.254"
-    vmid:       161
 
   tasks:
     - name: Generate octet list 156–165
@@ -52,13 +51,21 @@
       loop_control:
         label: "{{ item.item }}"
       when:
-        - item.rc != 0            # any non-zero exit (timeout or unreachable) → free
+        - item.rc != 0            # non-zero return → treat as free
         - free_ip is not defined
       run_once: true
 
     - name: Debug chosen free_ip
       ansible.builtin.debug:
         var: free_ip
+
+    - name: Set vmid to the last octet of the free IP
+      ansible.builtin.set_fact:
+        vmid: "{{ free_ip.split('.')[-1] | int }}"
+
+    - name: Debug vmid
+      ansible.builtin.debug:
+        var: vmid
 
     - name: Create LXC Container
       community.general.proxmox:

@@ -5,33 +5,38 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
-    api_host:         "192.168.1.150"
-    api_user:         "root@pam"
-    api_password:     "c0ff33"
+    # Proxmox API credentials
+    api_host:       "192.168.1.150"
+    api_user:       "root@pam"
+    api_password:   "c0ff33"
 
-    proxmox_node:     "dragon"
+    # Container settings
+    proxmox_node:       "dragon"
     container_hostname: "ansible"
     container_password: "c0ff33"
+    ostemplate:         "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
 
-    ostemplate:       "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
-
-    # storage must support LXC (e.g. from `pvesm status`)
-    storage:          "local-lvm"
-    disk:             8        # GB as a number
-
-    memory:           512      # MB
-    cpus:             1
-    cpuunits:         1024
-    nameserver:       "192.168.1.254"
-    vmid:             160
+    # Storage must support LXC (e.g. from `pvesm status`)
+    storage:            "local-lvm"
+    disk:               8       # GB, as a number
+    memory:             512     # MB
+    cpus:               1
+    cpuunits:           1024
+    nameserver:         "192.168.1.254"
+    vmid:               160
 
   tasks:
-    - name: Build candidate IPs (.156–.165)
+    - name: Generate octet list 156–165
       set_fact:
-        candidate_ips: "{{ ('192.168.1.0/24' | ipaddr('network'))[156:166] }}"
+        candidate_octets: "{{ lookup('ansible.builtin.sequence','start=156 end=165', wantlist=True) }}"
+
+    - name: Build candidate IPs (192.168.1.156–165)
+      set_fact:
+        candidate_ips: "{{ candidate_octets | map('regex_replace','^(.*)$','192.168.1.\\1') | list }}"
 
     - name: Ping each candidate to find a free IP
-      ansible.builtin.command: ping -c1 -W1 {{ item }}
+      ansible.builtin.command:
+        cmd: "ping -c1 -W1 {{ item }}"
       register: ping_results
       ignore_errors: true
       loop: "{{ candidate_ips }}"

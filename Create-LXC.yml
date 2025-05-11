@@ -119,3 +119,9 @@
       become: true
       ansible.builtin.shell: |
         /usr/sbin/pct exec {{ vmid }} -- systemctl restart sshd
+
+    - name: Reboot the LXC Container
+      delegate_to: "{{ api_host }}"
+      become: true
+      ansible.builtin.command:
+        cmd: "/usr/sbin/pct reboot {{ vmid }}"

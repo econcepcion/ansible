@@ -53,7 +53,7 @@
       loop_control:
         label: "{{ item.item }}"
       when:
-        - item.rc == 1        # successful ICMP (no reply) 
+        - item.rc != 0        # successful ICMP (no reply) 
         - free_ip is not defined
       run_once: true
 

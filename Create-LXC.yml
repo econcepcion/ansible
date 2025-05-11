@@ -36,7 +36,9 @@
         cpus: "{{ cpus }}"
         cpuunits: "{{ cpuunits }}"
         nameserver: "{{ nameserver }}"
-        netif: 'name=eth0,bridge=vmbr0,ip=192.168.1.160/24,gw=192.168.1.254,ip6=dhcp'
+        netif:
+          - "name=eth0,bridge=vmbr0,ip=192.168.1.160/24,gw=192.168.1.254,ip6=dhcp"
         unprivileged: true
         state: present
         validate_certs: false
+

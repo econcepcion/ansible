@@ -35,17 +35,18 @@
         update_cache: yes
         cache_valid_time: 3600
         dpkg_options:
-          - "--force-confdef"
-          - "--force-confold"
+          - force-confdef
+          - force-confold
 
     - name: Install Apache, MariaDB, PHP and extensions
       ansible.builtin.apt:
         name: "{{ lamp_packages }}"
         state: present
         update_cache: no   # we've already updated
+        force_apt_get: yes       # make sure it uses apt-get
         dpkg_options:
-          - "--force-confdef"
-          - "--force-confold"
+          - force-confdef
+          - force-confold
 
     - name: Ensure Apache is running
       ansible.builtin.service:

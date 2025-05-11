@@ -134,16 +134,13 @@
     - name: Update apt cache inside the container
       delegate_to: "{{ api_host }}"
       become: true
-      shell: |
+      ansible.builtin.shell: |
         pct exec {{ vmid }} -- bash -lc "DEBIAN_FRONTEND=noninteractive apt-get update -qq"
-      args:
-        pty: yes
       changed_when: false
 
     - name: Upgrade packages inside the container
       delegate_to: "{{ api_host }}"
       become: true
-      shell: |
+      ansible.builtin.shell: |
         pct exec {{ vmid }} -- bash -lc "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq"
-      args:
-        pty: yes
+

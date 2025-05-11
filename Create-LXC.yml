@@ -146,18 +146,22 @@
     #    pct exec {{ vmid }} -- bash -lc "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq"
 
 
-    - name: Upgrade packages inside the container (non-interactive)
-      delegate_to: "{{ api_host }}"
+    - name: Upgrade all packages via SSH
+      hosts: "{{ free_ip }}"        # make sure you've added your LXC host to inventory by IP
+      remote_user: root
       become: true
-      ansible.builtin.shell: |
-        pct exec {{ vmid }} -- bash -lc "\
-          DEBIAN_FRONTEND=noninteractive \
-          apt-get update -qq && \
-          apt-get upgrade -y \
-            -o Dpkg::Options::='--force-confdef' \
-            -o Dpkg::Options::='--force-confold' \
-            -qq"
-      args:
-        pty: yes
-        
+    
+      tasks:
+        - name: Ensure apt cache is up to date
+          ansible.builtin.apt:
+            update_cache: yes
+    
+        - name: Upgrade all packages
+          ansible.builtin.apt:
+            upgrade: dist
+            dpkg_options:
+              - "--force-confdef"
+              - "--force-confold"
+            autoremove: yes
+
 

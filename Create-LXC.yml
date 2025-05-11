@@ -43,7 +43,7 @@
         cpus: "{{ cpus }}"
         cpuunits: "{{ cpuunits }}"
         nameserver: "{{ nameserver }}"
-        netif: "{{ netif | string }}"
+        netif: "{{ netif | string | to_nice_json }}"
         unprivileged: true
         state: present
         validate_certs: false

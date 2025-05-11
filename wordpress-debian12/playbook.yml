@@ -1,0 +1,101 @@
+# playbook.yml
+- name: Install and configure WordPress on Debian 12
+  hosts: wordpress_servers
+  become: yes
+  vars:
+    wp_db_name: wordpress
+    wp_db_user: wp_user
+    wp_db_password: "ChangeMe123!"
+    wp_db_host: localhost
+    wp_install_dir: /var/www/html
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Apache, MariaDB, PHP and extensions
+      ansible.builtin.apt:
+        name:
+          - apache2
+          - mariadb-server
+          - php
+          - php-mysql
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-xmlrpc
+          - php-soap
+          - php-intl
+          - php-zip
+          - wget
+          - unzip
+        state: present
+
+    - name: Ensure Apache is running
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Ensure MariaDB is running
+      ansible.builtin.service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Create WordPress database
+      ansible.builtin.mysql_db:
+        name: "{{ wp_db_name }}"
+        state: present
+
+    - name: Create WordPress database user
+      ansible.builtin.mysql_user:
+        name: "{{ wp_db_user }}"
+        password: "{{ wp_db_password }}"
+        priv: "{{ wp_db_name }}.*:ALL"
+        host: "{{ wp_db_host }}"
+        state: present
+
+    - name: Download latest WordPress
+      ansible.builtin.get_url:
+        url: https://wordpress.org/latest.tar.gz
+        dest: /tmp/wordpress.tar.gz
+        checksum: sha256:eca5f37c997daae1ff2f99a1a0fd9b36cc1a4ce44850e17734f58a0bfb81198b
+
+    - name: Extract WordPress into web root
+      ansible.builtin.unarchive:
+        src: /tmp/wordpress.tar.gz
+        dest: "{{ wp_install_dir }}"
+        extra_opts: [--strip-components=1]
+        creates: "{{ wp_install_dir }}/index.php"
+
+    - name: Ensure correct ownership on WordPress files
+      ansible.builtin.file:
+        path: "{{ wp_install_dir }}"
+        state: directory
+        recurse: yes
+        owner: www-data
+        group: www-data
+
+    - name: Deploy wp-config.php
+      ansible.builtin.template:
+        src: wp-config.php.j2
+        dest: "{{ wp_install_dir }}/wp-config.php"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Enable Apache rewrite module
+      ansible.builtin.apache2_module:
+        name: rewrite
+        state: present
+      notify: Restart Apache
+
+  handlers:
+    - name: Restart Apache
+      ansible.builtin.service:
+        name: apache2
+        state: restarted

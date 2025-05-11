@@ -22,13 +22,12 @@
   tasks:
     - name: Create LXC Container
       community.general.proxmox:
-        vmid: "{{ vmid }}"
+        api_host: "{{ api_host }}"
         api_user: "{{ api_user }}"
         api_password: "{{ api_password }}"
-        api_host: "{{ api_host }}"
-        password: "{{ container_password }}"
-        hostname: "{{ container_hostname }}"
         node: "{{ proxmox_node }}"
+        vmid: "{{ vmid }}"
+        hostname: "{{ container_hostname }}"
         ostemplate: "{{ ostemplate }}"
         storage: "{{ storage }}"
         disk: "{{ disk }}"
@@ -37,8 +36,11 @@
         cpuunits: "{{ cpuunits }}"
         nameserver: "{{ nameserver }}"
         netif:
-          - "name=eth0,bridge=vmbr0,ip=192.168.1.160/24,gw=192.168.1.254,ip6=dhcp"
+          - name: eth0
+            bridge: vmbr0
+            ip: 192.168.1.160/24
+            gw: 192.168.1.254
+            ip6: dhcp
         unprivileged: true
         state: present
         validate_certs: false
-

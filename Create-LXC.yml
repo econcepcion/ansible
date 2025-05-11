@@ -6,9 +6,9 @@
     ansible_python_interpreter: /usr/bin/python3
 
     # Proxmox API credentials
-    api_host:       "192.168.1.150"
-    api_user:       "root@pam"
-    api_password:   "c0ff33"
+    api_host:     "192.168.1.150"
+    api_user:     "root@pam"
+    api_password: "c0ff33"
 
     # Container settings
     proxmox_node:       "dragon"
@@ -16,14 +16,14 @@
     container_password: "c0ff33"
     ostemplate:         "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
 
-    # Storage must support LXC (e.g. from `pvesm status`)
-    storage:            "local-lvm"
-    disk:               8       # GB
-    memory:             512     # MB
-    cpus:               1
-    cpuunits:           1024
-    nameserver:         "192.168.1.254"
-    vmid:               160
+    # LXC‐enabled storage
+    storage:    "local-lvm"
+    disk:       8       # GB
+    memory:     512     # MB
+    cpus:       1
+    cpuunits:   1024
+    nameserver: "192.168.1.254"
+    vmid:       160
 
   tasks:
     - name: Generate octet list 156–165
@@ -35,9 +35,8 @@
         candidate_ips: "{{ candidate_octets | map('regex_replace','^(.*)$','192.168.1.\\1') | list }}"
 
     - name: Ping each candidate to find a free IP
-      become: true
       ansible.builtin.command:
-        cmd: "ping -c1 -W1 {{ item }}"
+        cmd: "timeout 1 ping -c1 -W1 {{ item }}"
       register: ping_results
       ignore_errors: true
       loop: "{{ candidate_ips }}"
@@ -51,8 +50,6 @@
         - item.rc != 0
         - free_ip is not defined
       loop: "{{ ping_results.results }}"
-      loop_control:
-        label: "{{ item.item }}"
       run_once: true
 
     - name: Debug chosen free_ip
@@ -61,20 +58,20 @@
 
     - name: Create LXC Container
       community.general.proxmox:
-        api_host:       "{{ api_host }}"
-        api_user:       "{{ api_user }}"
-        api_password:   "{{ api_password }}"
-        node:           "{{ proxmox_node }}"
-        vmid:           "{{ vmid }}"
-        hostname:       "{{ container_hostname }}"
-        ostemplate:     "{{ ostemplate }}"
-        storage:        "{{ storage }}"
-        disk:           "{{ disk }}"
-        memory:         "{{ memory }}"
-        cpus:           "{{ cpus }}"
-        cpuunits:       "{{ cpuunits }}"
-        nameserver:     "{{ nameserver }}"
-        password:       "{{ container_password }}"
+        api_host:     "{{ api_host }}"
+        api_user:     "{{ api_user }}"
+        api_password: "{{ api_password }}"
+        node:         "{{ proxmox_node }}"
+        vmid:         "{{ vmid }}"
+        hostname:     "{{ container_hostname }}"
+        ostemplate:   "{{ ostemplate }}"
+        storage:      "{{ storage }}"
+        disk:         "{{ disk }}"
+        memory:       "{{ memory }}"
+        cpus:         "{{ cpus }}"
+        cpuunits:     "{{ cpuunits }}"
+        nameserver:   "{{ nameserver }}"
+        password:     "{{ container_password }}"
         netif:
           net0: "name=eth0,bridge=vmbr0,ip={{ free_ip }}/24,gw={{ nameserver }},ip6=dhcp"
         unprivileged:   true

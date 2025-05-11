@@ -48,6 +48,7 @@
       loop: "{{ candidate_ips }}"
 
 
+
     - name: Pick the first non-responding IP
       ansible.builtin.set_fact:
         free_ip: "{{ item.item }}"

@@ -3,82 +3,82 @@
   hosts: localhost
   gather_facts: false
   vars:
-    ansible_python_interpreter: /usr/bin/python3
+    # network & IP candidates
+    network_prefix: "192.168.1"
+    start_octet: 156
+    end_octet: 165
+    gateway: "192.168.1.254"
+    nameserver: "192.168.1.254"
 
     # Proxmox API credentials
-    api_host:       "192.168.1.150"
-    api_user:       "root@pam"
-    api_password:   "c0ff33"
+    proxmox_api_host: "192.168.1.150"
+    proxmox_api_user: "root@pam"
+    proxmox_api_password: "{{ vault_proxmox_password }}"  # or however you inject it
 
-    # Container settings
-    proxmox_node:       "dragon"
-    container_hostname: "ansible"
-    container_password: "c0ff33"
-    ostemplate:         "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
-
-    # LXC‐enabled storage
-    storage:    "local-lvm"
-    disk:       8       # GB
-    memory:     512     # MB
-    cpus:       1
-    cpuunits:   1024
-    nameserver: "192.168.1.254"
-    vmid:       161
+    # Container parameters
+    vmid: 160
+    hostname: "ansible"
+    ostemplate: "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+    cores: 1
+    memory: 512       # MB
+    disk: 8           # GB
+    storage: "local-lvm"
+    cpuunits: 1024
+    unprivileged: true
 
   tasks:
-    - name: Generate octet list 156–165
-      ansible.builtin.set_fact:
-        candidate_octets: "{{ lookup('ansible.builtin.sequence','start=156 end=165', wantlist=True) }}"
+    - name: Generate octet list {{ start_octet }}–{{ end_octet }}
+      set_fact:
+        candidate_octets: "{{ range(start_octet, end_octet + 1) | list }}"
 
-    - name: Build candidate IPs
-      ansible.builtin.set_fact:
-        candidate_ips: "{{ candidate_octets | map('regex_replace','^(.*)$','192.168.1.\\1') | list }}"
+    - name: Build candidate IPs ({{ network_prefix }}.{{ start_octet }}–{{ end_octet }})
+      set_fact:
+        candidate_ips: >-
+          {{ candidate_octets
+             | map('string')
+             | map('regex_replace', '^(.*)$', network_prefix ~ '.\\1')
+             | list }}
 
     - name: Ping each candidate to find a free IP
       ansible.builtin.command:
-        cmd: "timeout 1 ping -c1 -W1 {{ item }}"
+        cmd: timeout 1 ping -c1 -W1 {{ item }}
       register: ping_results
-      loop: "{{ candidate_ips }}"
-      loop_control:
-        label: "{{ item }}"
-      # never fail or mark changed just because ping can't open raw sockets
-      ignore_errors: true
       failed_when: false
       changed_when: false
+      become: true
+      loop: "{{ candidate_ips }}"
 
     - name: Pick the first non-responding IP
       ansible.builtin.set_fact:
         free_ip: "{{ item.item }}"
       loop: "{{ ping_results.results }}"
-      loop_control:
-        label: "{{ item.item }}"
       when:
-        - item.rc != 0        # anything other than “host replied”
+        - item.rc == 1        # host unreachable → free
         - free_ip is not defined
       run_once: true
 
-    - name: Debug chosen free_ip
+    - name: Show chosen free IP
       ansible.builtin.debug:
-        var: free_ip
+        msg: "► free IP: {{ free_ip }}"
 
     - name: Create LXC Container
       community.general.proxmox:
-        api_host:       "{{ api_host }}"
-        api_user:       "{{ api_user }}"
-        api_password:   "{{ api_password }}"
-        node:           "{{ proxmox_node }}"
-        vmid:           "{{ vmid }}"
-        hostname:       "{{ container_hostname }}"
-        ostemplate:     "{{ ostemplate }}"
-        storage:        "{{ storage }}"
-        disk:           "{{ disk }}"
-        memory:         "{{ memory }}"
-        cpus:           "{{ cpus }}"
-        cpuunits:       "{{ cpuunits }}"
-        nameserver:     "{{ nameserver }}"
-        password:       "{{ container_password }}"
+        api_host: "{{ proxmox_api_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_password: "{{ proxmox_api_password }}"
+        vmid: "{{ vmid }}"
+        hostname: "{{ hostname }}"
+        ostemplate: "{{ ostemplate }}"
         netif:
-          net0: "name=eth0,bridge=vmbr0,ip={{ free_ip }}/24,gw={{ nameserver }},ip6=dhcp"
-        unprivileged:   true
-        state:          present
-        validate_certs: false
+          net0: "name=eth0,bridge=vmbr0,ip={{ free_ip }}/24,gw={{ gateway }},ip6=dhcp"
+        memory: "{{ memory }}"
+        swap: 0
+        disk: "{{ disk }}"
+        storage: "{{ storage }}"
+        cpuunits: "{{ cpuunits }}"
+        cores: "{{ cores }}"
+        unprivileged: "{{ unprivileged }}"
+        nameserver: "{{ nameserver }}"
+        timeout: 30
+        state: present
+      no_log: true

@@ -101,19 +101,18 @@
       no_log: true
 
     - name: Permit root login in the container’s SSH daemon
-      ansible.builtin.command:
-        cmd: >
-          pct exec {{ vmid }} --
-            sed -i 's|^#\?PermitRootLogin .*|PermitRootLogin yes|' /etc/ssh/sshd_config
+      become: true
+      ansible.builtin.shell: |
+        /usr/sbin/pct exec {{ vmid }} -- \
+          sed -i 's|^#\?PermitRootLogin .*|PermitRootLogin yes|' /etc/ssh/sshd_config
 
     - name: Enable password authentication in the container’s SSH daemon
-      ansible.builtin.command:
-        cmd: >
-          pct exec {{ vmid }} --
-            sed -i 's|^#\?PasswordAuthentication .*|PasswordAuthentication yes|' /etc/ssh/sshd_config
+      become: true
+      ansible.builtin.shell: |
+        /usr/sbin/pct exec {{ vmid }} -- \
+          sed -i 's|^#\?PasswordAuthentication .*|PasswordAuthentication yes|' /etc/ssh/sshd_config
 
     - name: Restart SSH inside the container
-      ansible.builtin.command:
-        cmd: >
-          pct exec {{ vmid }} --
-            systemctl restart sshd
+      become: true
+      ansible.builtin.shell: |
+        /usr/sbin/pct exec {{ vmid }} -- systemctl restart sshd

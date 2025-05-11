@@ -2,7 +2,6 @@
 - name: Install and configure WordPress on Debian 12 (non-interactive)
   hosts: wordpress_servers
   become: yes
-
   environment:
     DEBIAN_FRONTEND: noninteractive
 
@@ -12,7 +11,9 @@
     wp_db_password: "ChangeMe123!"
     wp_db_host: localhost
     wp_install_dir: /var/www/html
-    lamp_packages:
+
+    # Everything except php-xmlrpc
+    lamp_core_packages:
       - apache2
       - mariadb-server
       - php
@@ -21,7 +22,6 @@
       - php-gd
       - php-mbstring
       - php-xml
-      - php-xmlrpc
       - php-soap
       - php-intl
       - php-zip
@@ -33,19 +33,21 @@
       ansible.builtin.apt:
         update_cache: yes
         cache_valid_time: 3600
-        dpkg_options:
-          - "Dpkg::Options::=--force-confdef"
-          - "Dpkg::Options::=--force-confold"
 
-    - name: Install Apache, MariaDB, PHP and extensions
+    - name: Install core LAMP packages (excluding php-xmlrpc)
       ansible.builtin.apt:
-        name: "{{ lamp_packages }}"
+        name: "{{ lamp_core_packages }}"
         state: present
-        update_cache: no
         force_apt_get: yes
-        dpkg_options:
-          - "Dpkg::Options::=--force-confdef"
-          - "Dpkg::Options::=--force-confold"
+
+    - name: Install php-xmlrpc non-interactively
+      ansible.builtin.shell: |
+        apt-get install -y \
+          -o Dpkg::Options::="--force-confdef" \
+          -o Dpkg::Options::="--force-confold" \
+          php-xmlrpc
+      args:
+        warn: false
 
     - name: Ensure Apache is running
       ansible.builtin.service:
@@ -59,12 +61,12 @@
         state: started
         enabled: yes
 
-    - name: Create WordPress MySQL database
+    - name: Create WordPress database
       ansible.builtin.mysql_db:
         name: "{{ wp_db_name }}"
         state: present
 
-    - name: Create WordPress MySQL user
+    - name: Create WordPress database user
       ansible.builtin.mysql_user:
         name: "{{ wp_db_user }}"
         password: "{{ wp_db_password }}"
@@ -85,7 +87,7 @@
         extra_opts: [--strip-components=1]
         creates: "{{ wp_install_dir }}/index.php"
 
-    - name: Set ownership of WordPress files
+    - name: Set ownership on WordPress files
       ansible.builtin.file:
         path: "{{ wp_install_dir }}"
         state: directory
@@ -99,7 +101,7 @@
         dest: "{{ wp_install_dir }}/wp-config.php"
         owner: www-data
         group: www-data
-        mode: '0644'
+        mode: 0644
 
     - name: Enable Apache rewrite module
       ansible.builtin.apache2_module:

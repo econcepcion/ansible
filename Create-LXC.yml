@@ -18,15 +18,8 @@
     cpuunits: 1024
     nameserver: "192.168.1.254"
     vmid: 160
-    netif: "name=eth0,bridge=vmbr0,ip=192.168.1.160/24,gw=192.168.1.254,ip6=dhcp"
-
 
   tasks:
-    - name: Force netif as a string
-      set_fact:
-        netif: "name=eth0,bridge=vmbr0,ip=192.168.1.160/24,gw=192.168.1.254,ip6=dhcp"
-
- 
     - name: Create LXC Container
       community.general.proxmox:
         vmid: "{{ vmid }}"
@@ -43,8 +36,7 @@
         cpus: "{{ cpus }}"
         cpuunits: "{{ cpuunits }}"
         nameserver: "{{ nameserver }}"
-        netif: "{{ netif | string | to_nice_json }}"
+        netif: 'name=eth0,bridge=vmbr0,ip=192.168.1.160/24,gw=192.168.1.254,ip6=dhcp'
         unprivileged: true
         state: present
         validate_certs: false
-

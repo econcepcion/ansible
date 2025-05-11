@@ -27,7 +27,7 @@
   tasks:
     - name: Generate octet list 156–165
       ansible.builtin.set_fact:
-        candidate_octets: "{{ lookup('ansible.builtin.sequence','start=156 end=165', wantlist=True) }}"
+        candidate_octets: "{{ lookup('ansible.builtin.sequence', 'start=156 end=165', wantlist=True) }}"
 
     - name: Build candidate IPs
       ansible.builtin.set_fact:
@@ -40,11 +40,10 @@
       loop: "{{ candidate_ips }}"
       loop_control:
         label: "{{ item }}"
-      ignore_errors: true
       failed_when: false
       changed_when: false
 
-    - name: Pick the first non-responding IP
+    - name: Pick the first non‐responding IP
       ansible.builtin.set_fact:
         free_ip: "{{ item.item }}"
       loop: "{{ ping_results.results }}"
@@ -92,39 +91,39 @@
 
     - name: Start the LXC Container
       community.general.proxmox:
-        api_host:       "{{ api_host }}"
-        api_user:       "{{ api_user }}"
-        api_password:   "{{ api_password }}"
-        node:           "{{ proxmox_node }}"
-        vmid:           "{{ vmid }}"
-        state:          started
+        api_host:     "{{ api_host }}"
+        api_user:     "{{ api_user }}"
+        api_password: "{{ api_password }}"
+        node:         "{{ proxmox_node }}"
+        vmid:         "{{ vmid }}"
+        state:        started
       no_log: true
 
     - name: Permit root login in the container’s SSH daemon
       delegate_to: "{{ api_host }}"
       become: true
       ansible.builtin.shell: |
-        /usr/sbin/pct exec {{ vmid }} -- \
+        pct exec {{ vmid }} -- \
           sed -i 's|^#\?PermitRootLogin .*|PermitRootLogin yes|' /etc/ssh/sshd_config
 
     - name: Enable password authentication in the container’s SSH daemon
       delegate_to: "{{ api_host }}"
       become: true
       ansible.builtin.shell: |
-        /usr/sbin/pct exec {{ vmid }} -- \
+        pct exec {{ vmid }} -- \
           sed -i 's|^#\?PasswordAuthentication .*|PasswordAuthentication yes|' /etc/ssh/sshd_config
 
     - name: Restart SSH inside the container
       delegate_to: "{{ api_host }}"
       become: true
       ansible.builtin.shell: |
-        /usr/sbin/pct exec {{ vmid }} -- systemctl restart sshd
+        pct exec {{ vmid }} -- systemctl restart sshd
 
     - name: Reboot the LXC Container
       delegate_to: "{{ api_host }}"
       become: true
       ansible.builtin.command:
-        cmd: "/usr/sbin/pct reboot {{ vmid }}"
+        cmd: "pct reboot {{ vmid }}"
 
     - name: Wait for container to come back online (SSH port 22)
       delegate_to: localhost
@@ -137,11 +136,19 @@
     - name: Update apt cache inside the container
       delegate_to: "{{ api_host }}"
       become: true
-      ansible.builtin.shell: |
-        /usr/sbin/pct exec {{ vmid }} -- apt update -y
+      ansible.builtin.shell: >
+        pct exec {{ vmid }} -- bash -lc
+        "DEBIAN_FRONTEND=noninteractive apt-get update -qq"
+      args:
+        pty: true
+      changed_when: false
 
-    - name: Upgrade packages inside the container
+    - name: Upgrade all packages inside the container
       delegate_to: "{{ api_host }}"
       become: true
-      ansible.builtin.shell: |
-        /usr/sbin/pct exec {{ vmid }} -- apt upgrade -y
+      ansible.builtin.shell: >
+        pct exec {{ vmid }} -- bash -lc
+        "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq"
+      args:
+        pty: true
+

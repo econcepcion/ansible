@@ -11,7 +11,7 @@
     container_hostname: "ansible"
     proxmox_node: "dragon"
     ostemplate: "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
-    storage: "local"
+    storage: "local-lvm"
     disk: "8"
     memory: 512
     cpus: 1

@@ -4,10 +4,10 @@
   gather_facts: false
   vars:
     network_prefix: "192.168.1"
-    start_octet:   156
-    end_octet:     165
-    gateway:       "192.168.1.254"
-    nameserver:    "192.168.1.254"
+    start_octet: 156
+    end_octet: 165
+    gateway: "192.168.1.254"
+    nameserver: "192.168.1.254"
 
     proxmox_api_host:     "192.168.1.150"
     proxmox_api_user:     "root@pam"
@@ -21,10 +21,10 @@
     disk:        8
     storage:     "local-lvm"
     cpuunits:    1024
-    unprivileged:true
+    unprivileged: true
 
   tasks:
-    - name: Generate octet list {{ start_octet }}–{{ end_octet }}
+    - name: Generate octet list {{ start_octet }}-{{ end_octet }}
       set_fact:
         candidate_octets: "{{ range(start_octet, end_octet + 1) | list }}"
 
@@ -32,15 +32,15 @@
       set_fact:
         candidate_ips: []
 
-    - name: Build candidate IPs ({{ network_prefix }}.{{ start_octet }}–{{ end_octet }})
+    - name: Build candidate IPs ({{ network_prefix }}.{{ start_octet }}-{{ end_octet }})
       set_fact:
-        candidate_ips: "{{ candidate_ips + [ network_prefix ~ '.' ~ item|string ] }}"
+        candidate_ips: "{{ candidate_ips + [ network_prefix + '.' + item|string ] }}"
       loop: "{{ candidate_octets }}"
 
     - name: Ping each candidate to find a free IP
-      become: true                            # ← run as root so ping can open RAW socket
+      become: true
       ansible.builtin.command:
-        cmd: timeout 1 ping -c1 -W1 {{ item }}
+        cmd: "timeout 1 ping -c1 -W1 {{ item }}"
       register: ping_results
       failed_when: false
       changed_when: false
@@ -51,7 +51,7 @@
         free_ip: "{{ item.item }}"
       loop: "{{ ping_results.results }}"
       when:
-        - item.rc != 0                       # ← anything but “reachable”
+        - item.rc != 0
         - free_ip is not defined
       run_once: true
 

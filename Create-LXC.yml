@@ -1,5 +1,5 @@
 ---
-- name: Create new LXC container in Proxmox
+- name: Create new LXC container in Proxmox 1.0
   hosts: localhost
   gather_facts: false
   vars:

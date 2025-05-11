@@ -45,8 +45,8 @@
       register: ping_results
       failed_when: false
       changed_when: false
-      become: true
       loop: "{{ candidate_ips }}"
+
 
     - name: Pick the first non-responding IP
       ansible.builtin.set_fact:

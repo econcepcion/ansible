@@ -25,41 +25,34 @@
     nameserver: "192.168.1.254"
     vmid:       161
 
-    # IP range
-    network_prefix: "192.168.1"
-    start_octet:    156
-    end_octet:      165
-
   tasks:
-    - name: Generate octet list {{ start_octet }}–{{ end_octet }}
+    - name: Generate octet list 156–165
       ansible.builtin.set_fact:
-        candidate_octets: "{{ lookup('ansible.builtin.sequence',
-                                      'start=' ~ start_octet ~ ' end=' ~ end_octet,
-                                      wantlist=True) }}"
+        candidate_octets: "{{ lookup('ansible.builtin.sequence','start=156 end=165', wantlist=True) }}"
 
     - name: Build candidate IPs
       ansible.builtin.set_fact:
-        candidate_ips: "{{ candidate_octets
-                          | map('string')
-                          | map('regex_replace','^(.*)$', network_prefix ~ '.\\1')
-                          | list }}"
+        candidate_ips: "{{ candidate_octets | map('regex_replace','^(.*)$','192.168.1.\\1') | list }}"
 
     - name: Ping each candidate to find a free IP
       ansible.builtin.command:
         cmd: "timeout 1 ping -c1 -W1 {{ item }}"
       register: ping_results
-      failed_when: false
-      changed_when: false
       loop: "{{ candidate_ips }}"
       loop_control:
         label: "{{ item }}"
+      ignore_errors: true
+      failed_when: false
+      changed_when: false
 
-    - name: Pick the first non-responding IP (rc == 1)
+    - name: Pick the first non-responding IP
       ansible.builtin.set_fact:
         free_ip: "{{ item.item }}"
       loop: "{{ ping_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
       when:
-        - item.rc == 1      # unreachable == free
+        - item.rc != 0            # any non-zero exit (timeout or unreachable) → free
         - free_ip is not defined
       run_once: true
 
@@ -88,4 +81,3 @@
         unprivileged:   true
         state:          present
         validate_certs: false
-      no_log: true

@@ -13,7 +13,7 @@
     # Proxmox API credentials
     proxmox_api_host: "192.168.1.150"
     proxmox_api_user: "root@pam"
-    proxmox_api_password: "{{ vault_proxmox_password }}"  # or however you inject it
+    proxmox_api_password: "{{ vault_proxmox_password }}"
 
     # Container parameters
     vmid: 160
@@ -31,13 +31,14 @@
       set_fact:
         candidate_octets: "{{ range(start_octet, end_octet + 1) | list }}"
 
+    - name: Initialize candidate_ips list
+      set_fact:
+        candidate_ips: []
+
     - name: Build candidate IPs ({{ network_prefix }}.{{ start_octet }}–{{ end_octet }})
       set_fact:
-        candidate_ips: >-
-          {{ candidate_octets
-             | map('string')
-             | map('regex_replace', '^(.*)$', network_prefix ~ '.\\1')
-             | list }}
+        candidate_ips: "{{ candidate_ips + [ network_prefix ~ '.' ~ item|string ] }}"
+      loop: "{{ candidate_octets }}"
 
     - name: Ping each candidate to find a free IP
       ansible.builtin.command:
@@ -46,8 +47,6 @@
       failed_when: false
       changed_when: false
       loop: "{{ candidate_ips }}"
-
-
 
     - name: Pick the first non-responding IP
       ansible.builtin.set_fact:

@@ -23,7 +23,7 @@
     cpus:       1
     cpuunits:   1024
     nameserver: "192.168.1.254"
-    vmid:       160
+    vmid:       161
 
   tasks:
     - name: Generate octet list 156–165

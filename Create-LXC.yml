@@ -6,9 +6,9 @@
     ansible_python_interpreter: /usr/bin/python3
 
     # Proxmox API credentials
-    api_host:     "192.168.1.150"
-    api_user:     "root@pam"
-    api_password: "c0ff33"
+    api_host:       "192.168.1.150"
+    api_user:       "root@pam"
+    api_password:   "c0ff33"
 
     # Container settings
     proxmox_node:       "dragon"
@@ -27,29 +27,34 @@
 
   tasks:
     - name: Generate octet list 156–165
-      set_fact:
+      ansible.builtin.set_fact:
         candidate_octets: "{{ lookup('ansible.builtin.sequence','start=156 end=165', wantlist=True) }}"
 
-    - name: Build candidate IPs (192.168.1.156–165)
-      set_fact:
+    - name: Build candidate IPs
+      ansible.builtin.set_fact:
         candidate_ips: "{{ candidate_octets | map('regex_replace','^(.*)$','192.168.1.\\1') | list }}"
 
     - name: Ping each candidate to find a free IP
       ansible.builtin.command:
         cmd: "timeout 1 ping -c1 -W1 {{ item }}"
       register: ping_results
-      ignore_errors: true
       loop: "{{ candidate_ips }}"
       loop_control:
         label: "{{ item }}"
+      # never fail or mark changed just because ping can't open raw sockets
+      ignore_errors: true
+      failed_when: false
+      changed_when: false
 
     - name: Pick the first non-responding IP
-      set_fact:
+      ansible.builtin.set_fact:
         free_ip: "{{ item.item }}"
-      when:
-        - item.rc != 0
-        - free_ip is not defined
       loop: "{{ ping_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when:
+        - item.rc == 1        # successful ICMP (no reply) 
+        - free_ip is not defined
       run_once: true
 
     - name: Debug chosen free_ip
@@ -58,20 +63,20 @@
 
     - name: Create LXC Container
       community.general.proxmox:
-        api_host:     "{{ api_host }}"
-        api_user:     "{{ api_user }}"
-        api_password: "{{ api_password }}"
-        node:         "{{ proxmox_node }}"
-        vmid:         "{{ vmid }}"
-        hostname:     "{{ container_hostname }}"
-        ostemplate:   "{{ ostemplate }}"
-        storage:      "{{ storage }}"
-        disk:         "{{ disk }}"
-        memory:       "{{ memory }}"
-        cpus:         "{{ cpus }}"
-        cpuunits:     "{{ cpuunits }}"
-        nameserver:   "{{ nameserver }}"
-        password:     "{{ container_password }}"
+        api_host:       "{{ api_host }}"
+        api_user:       "{{ api_user }}"
+        api_password:   "{{ api_password }}"
+        node:           "{{ proxmox_node }}"
+        vmid:           "{{ vmid }}"
+        hostname:       "{{ container_hostname }}"
+        ostemplate:     "{{ ostemplate }}"
+        storage:        "{{ storage }}"
+        disk:           "{{ disk }}"
+        memory:         "{{ memory }}"
+        cpus:           "{{ cpus }}"
+        cpuunits:       "{{ cpuunits }}"
+        nameserver:     "{{ nameserver }}"
+        password:       "{{ container_password }}"
         netif:
           net0: "name=eth0,bridge=vmbr0,ip={{ free_ip }}/24,gw={{ nameserver }},ip6=dhcp"
         unprivileged:   true

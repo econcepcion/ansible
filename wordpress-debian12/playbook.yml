@@ -1,6 +1,6 @@
 # playbook.yml
 - name: Install and configure WordPress on Debian 12
-  hosts: wordpress_servers
+  hosts: all
   become: yes
   vars:
     wp_db_name: wordpress

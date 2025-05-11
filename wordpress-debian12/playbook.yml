@@ -3,7 +3,6 @@
   hosts: wordpress_servers
   become: yes
 
-  # 1) Turn off all interactive prompts globally
   environment:
     DEBIAN_FRONTEND: noninteractive
 
@@ -35,18 +34,18 @@
         update_cache: yes
         cache_valid_time: 3600
         dpkg_options:
-          - force-confdef
-          - force-confold
+          - "Dpkg::Options::=--force-confdef"
+          - "Dpkg::Options::=--force-confold"
 
     - name: Install Apache, MariaDB, PHP and extensions
       ansible.builtin.apt:
         name: "{{ lamp_packages }}"
         state: present
-        update_cache: no   # we've already updated
-        force_apt_get: yes       # make sure it uses apt-get
+        update_cache: no
+        force_apt_get: yes
         dpkg_options:
-          - force-confdef
-          - force-confold
+          - "Dpkg::Options::=--force-confdef"
+          - "Dpkg::Options::=--force-confold"
 
     - name: Ensure Apache is running
       ansible.builtin.service:

@@ -3,35 +3,32 @@
   hosts: localhost
   gather_facts: false
   vars:
-    # network & IP candidates
     network_prefix: "192.168.1"
-    start_octet: 156
-    end_octet: 165
-    gateway: "192.168.1.254"
-    nameserver: "192.168.1.254"
+    start_octet:   156
+    end_octet:     165
+    gateway:       "192.168.1.254"
+    nameserver:    "192.168.1.254"
 
-    # Proxmox API credentials
-    proxmox_api_host: "192.168.1.150"
-    proxmox_api_user: "root@pam"
+    proxmox_api_host:     "192.168.1.150"
+    proxmox_api_user:     "root@pam"
     proxmox_api_password: "{{ vault_proxmox_password }}"
 
-    # Container parameters
-    vmid: 160
-    hostname: "ansible"
-    ostemplate: "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
-    cores: 1
-    memory: 512       # MB
-    disk: 8           # GB
-    storage: "local-lvm"
-    cpuunits: 1024
-    unprivileged: true
+    vmid:        160
+    hostname:    "ansible"
+    ostemplate:  "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+    cores:       1
+    memory:      512
+    disk:        8
+    storage:     "local-lvm"
+    cpuunits:    1024
+    unprivileged:true
 
   tasks:
     - name: Generate octet list {{ start_octet }}–{{ end_octet }}
       set_fact:
         candidate_octets: "{{ range(start_octet, end_octet + 1) | list }}"
 
-    - name: Initialize candidate_ips list
+    - name: Initialize candidate_ips
       set_fact:
         candidate_ips: []
 
@@ -41,6 +38,7 @@
       loop: "{{ candidate_octets }}"
 
     - name: Ping each candidate to find a free IP
+      become: true                            # ← run as root so ping can open RAW socket
       ansible.builtin.command:
         cmd: timeout 1 ping -c1 -W1 {{ item }}
       register: ping_results
@@ -49,36 +47,36 @@
       loop: "{{ candidate_ips }}"
 
     - name: Pick the first non-responding IP
-      ansible.builtin.set_fact:
+      set_fact:
         free_ip: "{{ item.item }}"
       loop: "{{ ping_results.results }}"
       when:
-        - item.rc == 1        # host unreachable → free
+        - item.rc != 0                       # ← anything but “reachable”
         - free_ip is not defined
       run_once: true
 
     - name: Show chosen free IP
-      ansible.builtin.debug:
+      debug:
         msg: "► free IP: {{ free_ip }}"
 
     - name: Create LXC Container
       community.general.proxmox:
-        api_host: "{{ proxmox_api_host }}"
-        api_user: "{{ proxmox_api_user }}"
+        api_host:     "{{ proxmox_api_host }}"
+        api_user:     "{{ proxmox_api_user }}"
         api_password: "{{ proxmox_api_password }}"
-        vmid: "{{ vmid }}"
-        hostname: "{{ hostname }}"
-        ostemplate: "{{ ostemplate }}"
+        vmid:         "{{ vmid }}"
+        hostname:     "{{ hostname }}"
+        ostemplate:   "{{ ostemplate }}"
         netif:
           net0: "name=eth0,bridge=vmbr0,ip={{ free_ip }}/24,gw={{ gateway }},ip6=dhcp"
-        memory: "{{ memory }}"
-        swap: 0
-        disk: "{{ disk }}"
-        storage: "{{ storage }}"
-        cpuunits: "{{ cpuunits }}"
-        cores: "{{ cores }}"
+        memory:       "{{ memory }}"
+        swap:         0
+        disk:         "{{ disk }}"
+        storage:      "{{ storage }}"
+        cpuunits:     "{{ cpuunits }}"
+        cores:        "{{ cores }}"
         unprivileged: "{{ unprivileged }}"
-        nameserver: "{{ nameserver }}"
-        timeout: 30
-        state: present
+        nameserver:   "{{ nameserver }}"
+        timeout:      30
+        state:        present
       no_log: true

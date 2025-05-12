@@ -2,8 +2,11 @@
 - name: Install and configure WordPress on Debian 12 (non-interactive)
   hosts: wordpress_servers
   become: yes
+
+  # Turn off all front-ends that might prompt:
   environment:
     DEBIAN_FRONTEND: noninteractive
+    APT_LISTCHANGES_FRONTEND: none
 
   vars:
     wp_db_name: wordpress
@@ -11,9 +14,7 @@
     wp_db_password: "ChangeMe123!"
     wp_db_host: localhost
     wp_install_dir: /var/www/html
-
-    # Everything except php-xmlrpc
-    lamp_core_packages:
+    lamp_packages:
       - apache2
       - mariadb-server
       - php
@@ -22,6 +23,7 @@
       - php-gd
       - php-mbstring
       - php-xml
+      - php-xmlrpc
       - php-soap
       - php-intl
       - php-zip
@@ -33,21 +35,19 @@
       ansible.builtin.apt:
         update_cache: yes
         cache_valid_time: 3600
+        dpkg_options:
+          - force-confdef
+          - force-confold
 
-    - name: Install core LAMP packages (excluding php-xmlrpc)
+    - name: Install Apache, MariaDB, PHP and extensions
       ansible.builtin.apt:
-        name: "{{ lamp_core_packages }}"
+        name: "{{ lamp_packages }}"
         state: present
         force_apt_get: yes
-
-    - name: Install php-xmlrpc non-interactively
-      ansible.builtin.shell: |
-        apt-get install -y \
-          -o Dpkg::Options::="--force-confdef" \
-          -o Dpkg::Options::="--force-confold" \
-          php-xmlrpc
-      args:
-        warn: false
+        update_cache: no
+        dpkg_options:
+          - force-confdef
+          - force-confold
 
     - name: Ensure Apache is running
       ansible.builtin.service:
@@ -61,12 +61,12 @@
         state: started
         enabled: yes
 
-    - name: Create WordPress database
+    - name: Create WordPress MySQL database
       ansible.builtin.mysql_db:
         name: "{{ wp_db_name }}"
         state: present
 
-    - name: Create WordPress database user
+    - name: Create WordPress MySQL user
       ansible.builtin.mysql_user:
         name: "{{ wp_db_user }}"
         password: "{{ wp_db_password }}"
@@ -78,7 +78,6 @@
       ansible.builtin.get_url:
         url: https://wordpress.org/latest.tar.gz
         dest: /tmp/wordpress.tar.gz
-        checksum: sha256:eca5f37c997daae1ff2f99a1a0fd9b36cc1a4ce44850e17734f58a0bfb81198b
 
     - name: Extract WordPress into web root
       ansible.builtin.unarchive:
@@ -87,7 +86,7 @@
         extra_opts: [--strip-components=1]
         creates: "{{ wp_install_dir }}/index.php"
 
-    - name: Set ownership on WordPress files
+    - name: Set ownership of WordPress files
       ansible.builtin.file:
         path: "{{ wp_install_dir }}"
         state: directory
@@ -101,7 +100,7 @@
         dest: "{{ wp_install_dir }}/wp-config.php"
         owner: www-data
         group: www-data
-        mode: 0644
+        mode: '0644'
 
     - name: Enable Apache rewrite module
       ansible.builtin.apache2_module:

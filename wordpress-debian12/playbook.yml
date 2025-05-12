@@ -3,7 +3,7 @@
   hosts: wordpress_servers
   become: yes
 
-  # disable all front-ends that could prompt
+  # disable any frontend that might prompt
   environment:
     DEBIAN_FRONTEND: noninteractive
     APT_LISTCHANGES_FRONTEND: none
@@ -15,7 +15,7 @@
     wp_db_host: localhost
     wp_install_dir: /var/www/html
 
-    # note: php-xmlrpc is *removed* here on purpose
+    # install everything except php-xmlrpc via apt module
     lamp_core_packages:
       - apache2
       - mariadb-server
@@ -49,8 +49,6 @@
           -o Dpkg::Options::="--force-confdef" \
           -o Dpkg::Options::="--force-confold" \
           php-xmlrpc
-      args:
-        warn: false
 
     - name: Ensure Apache is running
       ansible.builtin.service:

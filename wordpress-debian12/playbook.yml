@@ -1,9 +1,9 @@
 ---
-- name: Install and configure WordPress on Debian 12 (non-interactive)
+- name: Install and configure WordPress on Debian 12 (truly non-interactive)
   hosts: wordpress_servers
   become: yes
 
-  # Turn off all front-ends that might prompt:
+  # disable all front-ends that could prompt
   environment:
     DEBIAN_FRONTEND: noninteractive
     APT_LISTCHANGES_FRONTEND: none
@@ -14,7 +14,9 @@
     wp_db_password: "ChangeMe123!"
     wp_db_host: localhost
     wp_install_dir: /var/www/html
-    lamp_packages:
+
+    # note: php-xmlrpc is *removed* here on purpose
+    lamp_core_packages:
       - apache2
       - mariadb-server
       - php
@@ -23,7 +25,6 @@
       - php-gd
       - php-mbstring
       - php-xml
-      - php-xmlrpc
       - php-soap
       - php-intl
       - php-zip
@@ -35,19 +36,21 @@
       ansible.builtin.apt:
         update_cache: yes
         cache_valid_time: 3600
-        dpkg_options:
-          - force-confdef
-          - force-confold
 
-    - name: Install Apache, MariaDB, PHP and extensions
+    - name: Install core LAMP packages (excluding php-xmlrpc)
       ansible.builtin.apt:
-        name: "{{ lamp_packages }}"
+        name: "{{ lamp_core_packages }}"
         state: present
         force_apt_get: yes
-        update_cache: no
-        dpkg_options:
-          - force-confdef
-          - force-confold
+
+    - name: Install php-xmlrpc non-interactively via shell
+      ansible.builtin.shell: |
+        apt-get install -y \
+          -o Dpkg::Options::="--force-confdef" \
+          -o Dpkg::Options::="--force-confold" \
+          php-xmlrpc
+      args:
+        warn: false
 
     - name: Ensure Apache is running
       ansible.builtin.service:
